@@ -46,7 +46,7 @@ var
 
 # With characters:
 
-name <- c('Amal','Ali','Sara','Hamd')
+name <- c('Amal','Ali','Sara','Hamd','Lili','Hala')
 name
 
 # random number generators:
@@ -154,5 +154,90 @@ typeof(plant_lm) #"list"
 # how many elements:
 length(plant_lm) #13
 length(shortFormSEQ) #11 , also works for vectors
+
+# attributes (meta data)
+attributes(plant_lm) # 13 named elements
+
+# use common "accessor" functions for attributes
+names(plant_lm)
+
+
+# Anything that's named can be called with $
+plant_lm$coefficients # a 3-element named dbl (numeric) vector
+plant_lm$residuals # a 30-element dbl vector
+plant_lm$model # data.frame
+
+# As an aside: You can even add comments:
+comment(plant_lm) <- "I love R!"
+attributes(plant_lm)
+
+# Add comment as an actual list item:
+plant_lm$myComment <- "But python also :)"
+plant_lm$myComment
+
+
+# What is class?
+# An attribute to an object
+attributes(plant_lm)
+# can also access with "accessor" function:
+class(plant_lm)
+class(plant_aov)
+# class tells R functions what to do with this object
+# e.g.
+summary(plant_lm) # get t-test and ANOVA summary from an "lm"
+summary(PlantGrowth) # summarise each column in a "dataframe"
+
+
+# Dataframes - 2-dimensional, heterogenous ----
+class(PlantGrowth)
+# A special class of type list...
+typeof(PlantGrowth)
+# ...where each element is a vector of the SAME length!
+# Rows = observations
+# Columns = variables
+
+
+# Make a data frame from scratch using data.frame(), or...
+# You can use the modern variant  
+# Note, I put _df on the end of the name to remind us that this is a
+# data frame (well, a tibble), but it's not necessary.
+library(tidyverse)
+
+df <- tibble(shortFormSEQ2, vec1, vec2)
+df
+
+# To modify the column names, what you're actually doing is
+# Change an attribute (think metadata). The most common attributes
+# can be accessed with accessor functions, in this case names()
+names(df) <- name
+df
+
+# How can you call each variable (i.e. column) by name:
+# Note it will return a vector
+#df$healthy
+PlantGrowth$weight
+
+# Basic functions:
+# Display the structure of foo_df using a base R function:
+str(df)
+
+# Now using a tidyverse function:
+glimpse(df)
+
+
+# Can you get a short summary of every variable with one command?
+summary(df)
+
+
+# Can you print out the number of rows & columns?
+length(df) # The number of columns, i.e. the number of elements in the list #3
+dim(df) #3 6
+
+# How about just the number of rows?
+nrow(df) #6
+
+# How about just the number of columns? 
+ncol(df) #3
+
 
 
