@@ -237,7 +237,7 @@ dim(df) #3 6
 nrow(df) #6
 
 # How about just the number of columns? 
-ncol(df) #3
+ncol(df) #3 
 
 
 
