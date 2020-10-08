@@ -215,7 +215,7 @@ df
 # How can you call each variable (i.e. column) by name:
 # Note it will return a vector
 #df$healthy
-PlantGrowth$weight
+PlantGrowth$weight 
 
 # Basic functions:
 # Display the structure of foo_df using a base R function:
