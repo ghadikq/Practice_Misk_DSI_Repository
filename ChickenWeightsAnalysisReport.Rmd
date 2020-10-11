@@ -1,0 +1,84 @@
+---
+title: "Chicken Weights Analysis Report"
+author: "Ghadi K"
+date: "11-10-2020"
+output: 
+  html_document:
+    theme: journal
+    highlight: espresso
+    toc: true
+    toc_depth: 4
+    toc_float:
+      collapsed: false
+---
+
+```{r setup, include=FALSE , results='hide', warning=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+library(tidyverse)
+library(DT)
+
+```
+
+# Descriptive Statistics
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+chickTable <- chickwts %>% 
+  group_by(feed) %>% 
+  summarise(n = length(feed),
+            average = mean(weight),
+            SD = sd(weight))
+datatable(chickTable)
+```
+
+# Plots
+
+## Box Plot 
+
+```{r pressure, echo=FALSE}
+chickwts %>%
+  ggplot(aes(x=feed , y=weight)) + geom_boxplot()
+```
+
+
+
+## Jitter Plot
+
+
+```{r, echo=FALSE}
+chickwts %>%
+  ggplot(aes(x=feed , y=weight)) + geom_jitter()+
+  stat_summary(fun.data = mean_sdl,
+               fun.args = list(mult =1),
+               col = "orange")
+```
+
+
+
+# Inferential Statistics
+
+## The one-way ANOVA summary
+```{r, echo=FALSE}
+res.aov <- aov(weight ~ feed, data = chickwts)
+ANOVATable <- summary(res.aov)
+
+library(pander)
+
+pander(ANOVATable, style='rmarkdown')
+
+```
+
+## Tukey’s Post-hoc test
+
+```{r, echo=FALSE}
+chickwts.av <- aov(weight ~ feed, data = chickwts)
+tukeyTest <- TukeyHSD(chickwts.av)
+datatable(tukeyTest$feed)
+
+
+```
+
