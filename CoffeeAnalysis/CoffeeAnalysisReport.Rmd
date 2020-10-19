@@ -1,0 +1,140 @@
+---
+title: "Coffee Analysis Report"
+author: "Ghadi K"
+date: "19-10-2020"
+output: 
+  html_document:
+    theme: paper
+    toc: true
+    toc_depth: 4
+    toc_float:
+      collapsed: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(DT)
+coffee_ratings <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-07/coffee_ratings.csv')
+
+```
+null H dose Robusta has bad aroma ?
+Arabic has better aroma
+
+dose speice affect aroma
+
+dose region affect aroma
+
+# Descriptive Statistics
+```{r}
+coffeeTable <- coffee_ratings %>% 
+  group_by(species) %>% 
+  summarise(n = length(species),
+            Average = mean(aroma),
+            SD = sd(aroma))
+datatable(coffeeTable)
+```
+
+
+
+```{r}
+coffee_ratings %>%
+  ggplot(aes(x=species , y=aroma)) + geom_jitter()+
+  stat_summary(fun.data = mean_sdl,
+               fun.args = list(mult =1),
+               col = "blue")
+```
+
+
+
+```{r}
+coffeeTable <- coffee_ratings %>% 
+  group_by(country_of_origin) %>% 
+  summarise(n = length(country_of_origin),
+            Average = mean(aroma),
+            SD = sd(aroma))
+datatable(coffeeTable)
+
+```
+## Is there a relation between Species & Aroma ?
+
+```{r pressure, echo=FALSE}
+ggplot(coffee_ratings, aes(x = species, y = aroma)) +
+  geom_jitter(width = 0.2) +
+  coord_cartesian() +
+  labs(title = "ALL information from X that is available")
+```
+
+
+```{r}
+
+```
+## Linear regression
+
+Our data:
+
+```{r}
+
+Species_aroma_mean <- mean(coffee_ratings$aroma[coffee_ratings$species == "Arabica"])
+coffee_ratings %>% 
+  filter(species == "Arabica") %>% 
+  ggplot(aes(x = 1, y = aroma)) +
+  geom_jitter(width = 0.2) +
+  geom_hline(aes(yintercept = Species_aroma_mean, color = "Null model (y-bar)")) +
+  coord_cartesian(xlim = c(0,2)) +
+  labs(title = "No information from X at all")
+```
+
+
+```{r SpeiceAromaArabica}
+coffee_ratings %>% 
+  filter(species == "Arabica") %>% 
+  ggplot(aes(x = aroma, y = total_cup_points)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "blue", se = FALSE) +
+  labs(title = "ALL information from X (height)")
+```
+
+
+
+```{r SpeiceAromaRobusta}
+coffee_ratings %>% 
+  filter(species == "Robusta") %>% 
+  ggplot(aes(x = aroma, y = total_cup_points)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "blue", se = FALSE) +
+  labs(title = "ALL information from X (height)")
+```
+
+
+```{r aftertasteAromaRobusta}
+coffee_ratings %>% 
+  filter(species == "Arabica") %>% 
+  ggplot(aes(x = aroma, y = flavor)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "blue", se = FALSE) +
+  labs(title = "ALL information from X (height)")
+```
+
+```{r}
+sample_coffee_ratings <- coffee_ratings[sample(1:nrow(coffee_ratings),334,replace=TRUE),]
+sample_coffee_ratings
+
+#mysample <- mydata[sample(1:nrow(mydata), 50,replace=FALSE),]
+```
+```{r}
+length(coffee_ratings)
+```
+
+```{r}
+head(coffee_ratings)
+
+```
+
+```{r}
+t.test(aroma   ~ species, data = coffee_ratings)
+
+```
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
