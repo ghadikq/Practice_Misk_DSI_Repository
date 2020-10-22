@@ -39,7 +39,7 @@ PlayData_t %>%
   group_by(type,key) %>% 
   summarise(timediff=value[time == 2] - value[time == 1])
 
-# As another example: standardize to time 1 i.e time2/time1
+# As another example: standardize to time 1  i.e time2/time1
 PlayData_t %>% 
   group_by(type,key) %>% 
   summarise(rel_inc = value[time == 2]/value[time == 1])
