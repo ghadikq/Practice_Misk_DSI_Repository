@@ -11,130 +11,138 @@ output:
       collapsed: false
 ---
 
-```{r setup, include=FALSE}
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
 library(tidyverse)
 library(DT)
+library(RColorBrewer)
+
 coffee_ratings <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-07/coffee_ratings.csv')
 
 ```
-null H dose Robusta has bad aroma ?
-Arabic has better aroma
 
-dose speice affect aroma
+After read and explor dataset I was wondering if there is realation between the coffee bean origin country and coffee aroma.
 
-dose region affect aroma
+### Dose Coffee Bean Origin Don't Affect Coffee Aroma?
+
+This report will show you if the country of origin affect the coffee aroma.
+
+The dataset used in this report coffee_ratings dataset.
+
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+# choce the colums i need & clean data 
+CoffeeAnalysisData <- coffee_ratings %>% 
+  select(species,aroma,total_cup_points,country_of_origin)
+
+drop_na(CoffeeAnalysisData)
+CoffeeAnalysisData = CoffeeAnalysisData[-which(is.na(CoffeeAnalysisData$country_of_origin)),]
+
+```
 
 # Descriptive Statistics
-```{r}
-coffeeTable <- coffee_ratings %>% 
-  group_by(species) %>% 
-  summarise(n = length(species),
-            Average = mean(aroma),
-            SD = sd(aroma))
-datatable(coffeeTable)
-```
-
-
-
-```{r}
-coffee_ratings %>%
-  ggplot(aes(x=species , y=aroma)) + geom_jitter()+
-  stat_summary(fun.data = mean_sdl,
-               fun.args = list(mult =1),
-               col = "blue")
-```
-
-
-
-```{r}
-coffeeTable <- coffee_ratings %>% 
+The mean and standard deviation of Aroma for each Country of origin.
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+coffeeTable <- CoffeeAnalysisData %>% 
   group_by(country_of_origin) %>% 
   summarise(n = length(country_of_origin),
             Average = mean(aroma),
             SD = sd(aroma))
 datatable(coffeeTable)
-
-```
-## Is there a relation between Species & Aroma ?
-
-```{r pressure, echo=FALSE}
-ggplot(coffee_ratings, aes(x = species, y = aroma)) +
-  geom_jitter(width = 0.2) +
-  coord_cartesian() +
-  labs(title = "ALL information from X that is available")
 ```
 
+# Data Visualization
 
-```{r}
+## Bar Plot
 
-```
-## Linear regression
-
-Our data:
-
-```{r}
-
-Species_aroma_mean <- mean(coffee_ratings$aroma[coffee_ratings$species == "Arabica"])
-coffee_ratings %>% 
-  filter(species == "Arabica") %>% 
-  ggplot(aes(x = 1, y = aroma)) +
-  geom_jitter(width = 0.2) +
-  geom_hline(aes(yintercept = Species_aroma_mean, color = "Null model (y-bar)")) +
-  coord_cartesian(xlim = c(0,2)) +
-  labs(title = "No information from X at all")
-```
-
-
-```{r SpeiceAromaArabica}
-coffee_ratings %>% 
-  filter(species == "Arabica") %>% 
-  ggplot(aes(x = aroma, y = total_cup_points)) +
-  geom_point() +
-  geom_smooth(method = "lm", color = "blue", se = FALSE) +
-  labs(title = "ALL information from X (height)")
-```
-
-
-
-```{r SpeiceAromaRobusta}
-coffee_ratings %>% 
-  filter(species == "Robusta") %>% 
-  ggplot(aes(x = aroma, y = total_cup_points)) +
-  geom_point() +
-  geom_smooth(method = "lm", color = "blue", se = FALSE) +
-  labs(title = "ALL information from X (height)")
-```
-
-
-```{r aftertasteAromaRobusta}
-coffee_ratings %>% 
-  filter(species == "Arabica") %>% 
-  ggplot(aes(x = aroma, y = flavor)) +
-  geom_point() +
-  geom_smooth(method = "lm", color = "blue", se = FALSE) +
-  labs(title = "ALL information from X (height)")
-```
-
-```{r}
-sample_coffee_ratings <- coffee_ratings[sample(1:nrow(coffee_ratings),334,replace=TRUE),]
-sample_coffee_ratings
-
-#mysample <- mydata[sample(1:nrow(mydata), 50,replace=FALSE),]
-```
-```{r}
-length(coffee_ratings)
-```
-
-```{r}
-head(coffee_ratings)
-
-```
-
-```{r}
-t.test(aroma   ~ species, data = coffee_ratings)
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+# Outside bars
+ggplot(data=CoffeeAnalysisData, aes(x=country_of_origin, y=aroma)) +
+  geom_bar(stat="identity", fill="#a6611a")+
+  coord_flip()+
+  geom_text(aes(label=""), vjust=-0.3, size=3.5)+
+  theme_minimal()
 
 ```
 
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Normal Distirbution
+
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+set.seed(136)
+popu_Aroma_Country <- rnorm(CoffeeAnalysisData$country_of_origin, 
+                              mean = mean(CoffeeAnalysisData$aroma),
+                              sd = sd(CoffeeAnalysisData$aroma))
+hist(popu_Aroma_Country, breaks = 100, main = "A normally-distributed population")
+```
+
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+# Simple Bar Plot
+counts <- table(CoffeeAnalysisData$aroma)
+barplot(counts, main="Aroma Distribution",
+   xlab="Grade of Aroma")
+
+```
+
+
+# The ANOVA summary
+I apply ANOVA to determine if there is really a relation between Country of origin and aroma.
+
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+library(pander)
+
+res.aov <- aov(aroma ~ country_of_origin, data = CoffeeAnalysisData)
+ANOVATable <- summary(res.aov)
+
+pander(ANOVATable, style='rmarkdown')
+
+```
+
+After applying the ANOVA model it became clear that is reasonable to say that country of origin affects the coffee aroma. And the aroma change depending on country of origin.
+
+
+
+### Try CI
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+# Data
+coffee_from_Colombia2 <- CoffeeAnalysisData$aroma[CoffeeAnalysisData$country_of_origin == "Colombia"]
+
+# n
+n <- length(coffee_from_Colombia2)
+
+# Mean
+aromaCol_mean <- sum(coffee_from_Colombia2)/n
+
+# Variance
+aromaCol_var <- sum((coffee_from_Colombia2 - aromaCol_mean)^2)/(length(coffee_from_Colombia2) - 1)
+
+# Standard deviation
+aromaCol_sd <- sqrt(aromaCol_var)
+
+aromaCol_mean
+aromaCol_var
+aromaCol_sd
+```
+
+
+
+### Try 95% CI
+
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+n
+aromaCol_sd
+aromaCol_mean
+
+SEM <- aromaCol_sd/sqrt(n)
+
+CI_lower <- aromaCol_mean - (1.96 * SEM)
+CI_upper <- aromaCol_mean + (1.96 * SEM)
+
+```
+
+95% of the Aroma if Country of origin is Columbia are expected to have a height between [0.2684212- 7.65306]
+
+
+
+
+
