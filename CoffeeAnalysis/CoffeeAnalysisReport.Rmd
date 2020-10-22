@@ -22,32 +22,41 @@ coffee_ratings <- readr::read_csv('https://raw.githubusercontent.com/rfordatasci
 
 ```
 
-After read and explor dataset I was wondering if there is realation between the coffee bean origin country and coffee aroma.
+After read and explore dataset I was wondering if there is relationship between the coffee bean origin country and coffee aroma.
 
-### Dose Coffee Bean Origin Don't Affect Coffee Aroma?
+### Does Coffee Bean Origin Affect Coffee Aroma?
 
 This report will show you if the country of origin affect the coffee aroma.
 
 The dataset used in this report coffee_ratings dataset.
 
 ```{r, echo=FALSE , warning=FALSE, message=FALSE}
+
 # choce the colums i need & clean data 
+
 CoffeeAnalysisData <- coffee_ratings %>% 
   select(species,aroma,total_cup_points,country_of_origin)
 
-drop_na(CoffeeAnalysisData)
-CoffeeAnalysisData = CoffeeAnalysisData[-which(is.na(CoffeeAnalysisData$country_of_origin)),]
+# These are the same:
+CoffeeAnalysisData <- drop_na(CoffeeAnalysisData)
+
+CoffeeAnalysisData <- CoffeeAnalysisData[!is.na(CoffeeAnalysisData$country_of_origin),]
 
 ```
 
 # Descriptive Statistics
+
 The mean and standard deviation of Aroma for each Country of origin.
+
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
 coffeeTable <- CoffeeAnalysisData %>% 
   group_by(country_of_origin) %>% 
-  summarise(n = length(country_of_origin),
+  summarise(n = n(),
             Average = mean(aroma),
-            SD = sd(aroma))
+            SD = sd(aroma)) %>% 
+  filter(n > 10)
+
 datatable(coffeeTable)
 ```
 
@@ -57,14 +66,20 @@ datatable(coffeeTable)
 
 ```{r, echo=FALSE , warning=FALSE, message=FALSE}
 # Outside bars
-ggplot(data=CoffeeAnalysisData, aes(x=country_of_origin, y=aroma)) +
-  geom_bar(stat="identity", fill="#a6611a")+
-  coord_flip()+
-  geom_text(aes(label=""), vjust=-0.3, size=3.5)+
+ggplot(CoffeeAnalysisData, aes(country_of_origin, aroma)) +
+  geom_jitter(width = 0.2)
+# geom_bar(stat="identity", fill="#a6611a")+
+```
+
+
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+ggplot(CoffeeAnalysisData, aes(aroma, country_of_origin)) +
+  stat_sum(alpha = 0.2, shape = 16) +
+  # geom_point(alpha = 0.2) +
+  coord_cartesian(xlim = c(5,9)) +
   theme_minimal()
 
 ```
-
 
 ## Normal Distirbution
 

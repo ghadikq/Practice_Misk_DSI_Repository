@@ -29,8 +29,19 @@ TestCoffeeData <- coffee_ratings %>%
   select(aroma,total_cup_points,flavor,acidity,sweetness,aftertaste)
 
 ```
+
+# Data Introduction
+
+talk about the data....
+
+[source](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-07-07/readme.md)
+
+What are the main research questions that you'll attempt to answer with this data?
+
 # Descriptive Statistics
+
 The mean and standard deviation of Aroma for each Country of origin.
+
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 coffeeTable <- TestCoffeeData %>% 
   group_by(flavor) %>% 
