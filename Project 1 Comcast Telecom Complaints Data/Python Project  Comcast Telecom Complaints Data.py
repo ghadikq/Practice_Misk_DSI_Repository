@@ -4,6 +4,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> f25e11339d81b5bef22f30c39c2fc40a47341f5e
 #import dataset 
 df_telecom = pd.read_csv('C:\\Users\\ghadi\\Documents\\DataSet\\Comcast_telecom_complaints_data.csv')
 
