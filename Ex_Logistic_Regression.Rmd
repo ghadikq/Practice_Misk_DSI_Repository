@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 Using the spam data set from the kernlab package:
 ```{r}
 library(tidyverse)
-library(kernlab) # to import data
+library(kernlab) # to import data set
 # Helper packages
 library(dplyr)     # for data wrangling
 library(ggplot2)   # for awesome plotting
