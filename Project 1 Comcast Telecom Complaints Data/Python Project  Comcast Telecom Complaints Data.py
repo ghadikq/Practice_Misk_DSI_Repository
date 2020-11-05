@@ -4,10 +4,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np 
 
-# View plot on Jupyter
-get_ipython().run_line_magic('matplotlib', 'inline')
-
-
 #import dataset 
 df_telecom = pd.read_csv('C:\\Users\\ghadi\\Documents\\DataSet\\Comcast_telecom_complaints_data.csv')
 
