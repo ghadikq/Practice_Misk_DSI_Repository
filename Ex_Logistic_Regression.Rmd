@@ -1,0 +1,206 @@
+---
+title: "Ex_Logistic_Regression"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#Exercises
+Using the spam data set from the kernlab package:
+```{r}
+library(tidyverse)
+library(kernlab) # to import data
+# Helper packages
+library(dplyr)     # for data wrangling
+library(ggplot2)   # for awesome plotting
+library(rsample)   # for data splitting
+
+# Modeling packages
+library(caret)     # for logistic regression modeling
+
+# Model interpretability packages
+library(vip)       # variable importance
+library(ROCR)  
+
+```
+Import and Split data also change response variable type 
+```{r}
+data(spam)
+dfspam <- spam 
+
+#change response variable to binary
+dfspam$type <- ifelse(dfspam$type == "spam", 1, 0)
+str(dfspam)
+# change categorical variables to factors
+dfspam$type = as.factor(dfspam$type)
+
+str(spam)
+set.seed(123)
+spam_split <- initial_split(dfspam, prop = .7, strata = "type")
+spam_train <- training(spam_split)
+spam_test  <- testing(spam_split)
+```
+Drop NA if there is any 
+```{r}
+dfspam <- drop_na(dfspam)
+```
+
+```{r}
+# make sure type has convert correctly
+head(spam_train$type)
+
+```
+
+Explor data 
+```{r}
+head(dfspam)
+describe(dfspam)
+```
+## Ex.1_Pick a single feature and apply simple logistic regression model.
+
+### model 1st feature [report]
+```{r}
+# fit model to 1st feature report
+model1 <- glm(type ~ report, family = "binomial", data = spam_train)
+tidy(model1)
+```
+### Ex.1.1_Interpret the feature’s coefficient
+```{r}
+exp(coef(model1))
+```
+### Ex.1.2_What is the model’s performance?
+
+What metric do we look at? At this point you haven't predicted anything, so it's hard to say. Normally, you'd take the accuracy, the confusion matrix or the ROC after fitting the model with (predict())
+
+
+
+## Ex.2_Pick another feature to add to the model.
+
+### Ex.2.1_Before applying the module why do you think this feature will help?
+I'm curious to see if the message was reported and message have num415 can this give a pattern to predict if the message is spam?
+
+## Ex.2.2_Apply a logistic regression model with the two features and compare to the simple linear model.
+### model 2 feature [report & num415]
+```{r}
+model2 <- glm(type ~ report + num415, family = "binomial", data = spam_train)
+tidy(model2)
+```
+### Ex.2.3_Interpret the coefficients.
+```{r}
+exp(coef(model2))
+```
+
+## Ex.3_Now apply a model that includes all the predictors.
+# model all features 
+```{r}
+model3 <- glm(type ~ report + num415, family = "binomial", data = spam_train)
+tidy(model3)
+```
+Interpret the coefficients for model 3.
+```{r}
+exp(coef(model3))
+```
+## Ex.3.1_How does this model compare to the previous two?
+
+
+```{r}
+# Assessing models accuracy
+set.seed(123)
+cv_model1 <- train(
+  type ~ report, 
+  data = spam_train, 
+  method = "glm",
+  family = "binomial",
+  trControl = trainControl(method = "cv", number = 10)
+)
+set.seed(123)
+cv_model2 <- train(
+  type ~ report + num415, 
+  data = spam_train, 
+  method = "glm",
+  family = "binomial",
+  trControl = trainControl(method = "cv", number = 10)
+)
+set.seed(123)
+cv_model3 <- train(
+  type ~ . , 
+  data = spam_train, 
+  method = "glm",
+  family = "binomial",
+  trControl = trainControl(method = "cv", number = 10)
+)
+# extract out of sample performance measures
+summary(
+  resamples(
+    list(
+      model1 = cv_model1, 
+      model2 = cv_model2, 
+      model3 = cv_model3
+    )
+  )
+)$statistics$Accuracy
+```
+
+## Ex.5_Compute and interpret the following performance metrics:
+No information rate
+accuracy rate
+sensitivity
+specificity
+
+(accuracy, confusion matrix, ROC plot)
+
+```{r glm-confusion-matrix_model1}
+# Confusion matrix
+
+# predict class
+pred_class_model1 <- predict(cv_model1, spam_train)
+
+# create confusion matrix
+confusionMatrix(
+  data = relevel(pred_class_model1, ref = "1"), 
+  reference = relevel(spam_train$type, ref = "1")
+)
+# 15/(15+1255) = 0.011811 (sensitivity)
+
+# (15 + 1928)/(15 + 1928 + 1255 + 24) = 0.603 # accuracy
+```
+
+```{r glm-confusion-matrix}
+# Confusion matrix
+
+# predict class
+pred_class <- predict(cv_model3, spam_train)
+
+# create confusion matrix
+confusionMatrix(
+  data = relevel(pred_class, ref = "1"), 
+  reference = relevel(spam_train$type, ref = "1")
+)
+```
+
+## Ex.4_Plot an ROC curve comparing the performance of all three models
+```{r}
+# Compute predicted probabilities
+m1_prob <- predict(cv_model1, spam_train, type = "prob")
+m3_prob <- predict(cv_model3, spam_train, type = "prob")
+
+m1_prob <- m1_prob$`1` #short formula^^
+m3_prob <- m3_prob$`1` #short formula^^
+
+# Compute AUC metrics for cv_model1 and cv_model3
+perf1 <- prediction(m1_prob, spam_train$type) %>%
+  performance(measure = "tpr", x.measure = "fpr")
+
+perf2 <- prediction(m3_prob, spam_train$type) %>%
+  performance(measure = "tpr", x.measure = "fpr")
+
+# Plot ROC curves for cv_model1 and cv_model3
+plot(perf1, col = "black", lty = 2)
+plot(perf2, add = TRUE, col = "blue")
+legend(0.8, 0.2, legend = c("cv_model1", "cv_model3"),
+       col = c("black", "blue"), lty = 2:1, cex = 0.6)
+```
+
+
+
