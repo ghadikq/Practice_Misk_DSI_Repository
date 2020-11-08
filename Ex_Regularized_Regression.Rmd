@@ -1,0 +1,175 @@
+---
+title: "Ex_Regularized_Regression"
+author: "Ghadi K"
+date: "08-11-2020"
+output: 
+  html_document:
+    theme: journal
+    highlight: espresso
+    toc: true
+    toc_depth: 4
+    toc_float:
+      collapsed: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+# Helper packages
+library(recipes)   # for feature engineering
+library(tidyverse) # general data munging
+# Modeling packages
+library(glmnet)   # for implementing regularized regression
+library(caret)    # for automating the tuning process
+library(rsample)  # for sampling
+# Model interpretability packages
+library(vip)      # for variable importance
+```
+Using the Hitters dataset from the ISLR package I solve the following questions:
+
+```{r}
+# import dataset
+data(Hitters, package = "ISLR")
+head(Hitters)
+Hitters <- drop_na(Hitters)
+# split data
+set.seed(123)
+split <- initial_split(Hitters, strata = "Salary")
+Hitters_train <- training(split)
+```
+
+
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+# Create training  feature matrices
+X <- model.matrix(Salary ~ ., Hitters_train)[, -1]
+Y <- log(Hitters_train$Salary)
+```
+#Question 1
+Apply a ridge model with glmnet with Salary being the response variable.
+    What is the minimum MSE?
+    What is the minimum MSE within 1 standard error?
+    What are the lambda values for these MSEs?
+
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+#ridge 
+ridge <- glmnet(
+  x = X,
+  y = Y,
+  alpha = 0
+)
+
+plot(ridge, xvar = "lambda")
+
+```
+
+
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+# Ridge CV model
+  ridge <- cv.glmnet(
+  x = X,
+  y = Y,
+  alpha = 0
+)
+
+plot(ridge)
+```
+
+
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+###Ridge model results
+#minimum MSE
+min(ridge$cvm)
+#lambda for this min MSE
+ridge$lambda.min 
+ridge$cvm[ridge$lambda == ridge$lambda.1se]
+ridge$nzero[ridge$lambda == ridge$lambda.1se]
+```
+
+#Question 2
+Apply a lasso model with glmnet.
+    What is the minimum MSE?
+    What is the minimum MSE within 1 standard error?
+    What are the lambda values for these MSEs?
+
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+
+# Lasso
+lasso <- glmnet(
+  x = X,
+  y = Y,
+  alpha = 1
+)
+
+plot(lasso, xvar = "lambda")
+
+```
+
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+
+# Lasso CV model
+lasso <- cv.glmnet(
+  x = X,
+  y = Y,
+  alpha = 1
+)
+
+plot(lasso)
+```
+
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+##Lasso model results
+#minimum MSE
+min(lasso$cvm)       
+# lambda for this min MSE
+lasso$lambda.min 
+lasso$cvm[lasso$lambda == lasso$lambda.1se]
+lasso$nzero[lasso$lambda == lasso$lambda.1se]
+```
+#Question 3
+Perform a grid search across alpha parameter values ranging between 0–1.
+    What is the optimal alpha and lambda values?
+    What is the MSE and RMSE for this optimal model?
+    How does it compare to your previous models?
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+# Grid search
+hyper_grid <- expand.grid(
+  alpha = seq(0, 1, by = .25),
+  lambda = c(0.1, 10, 100, 1000, 10000)
+)
+
+# perform resampling
+set.seed(123)
+cv_glmnet <- train(
+  x = X,
+  y = Y,
+  method = "glmnet",
+  preProc = c("zv", "center", "scale"),
+  trControl = trainControl(method = "cv", number = 10),
+  tuneLength = 10
+)
+# best model
+cv_glmnet$results %>%
+  filter(
+    alpha == cv_glmnet$bestTune$alpha,
+    lambda == cv_glmnet$bestTune$lambda
+  )
+# plot results
+plot(cv_glmnet)
+```
+
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+# Comparing results to previous models
+pred <- predict(cv_glmnet, X)
+RMSE(exp(pred), exp(Y))
+```
+#Question 4
+Plot the top 10 most influential features. Do these features have positive or negative impacts on your response variable?
+Seeing plot result we can say that some features have positive while other have negative impacts
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+# Feature importance
+vip(cv_glmnet, num_features = 20, geom = "point")
+```
+
