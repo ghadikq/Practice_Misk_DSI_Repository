@@ -41,7 +41,9 @@ datatable(chickTable)
 
 # Plots
 Here I visualize data to see a pattern , trends and detect outliers if exists it is easier to understand these thing after visualize data set .
+
 ## Box Plot 
+
 First I plot Boxplot but why ?
 Boxplot can give you information regarding the shape, variability, and center (or median) of a statistical data set. 
 ```{r pressure, echo=FALSE}
