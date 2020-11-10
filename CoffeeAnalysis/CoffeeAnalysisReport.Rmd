@@ -18,62 +18,52 @@ library(tidyverse)
 library(DT)
 library(RColorBrewer)
 
-coffee_ratings <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-07/coffee_ratings.csv')
+coffee_ratings <- read_csv('C://Users//ghadi//Documents//DataSet//merged_data_cleaned.csv')
+```
+This report is done on the coffee ratings dataset it contains reviews of 1312 arabica and 28 robusta coffee beans from the Coffee Quality Institute trained reviewers. The features include and used in this report are Aroma grade one of the quality measures and Country of Origin from farm metadata that tells us where the bean came from.
+
+```{r, echo=FALSE , warning=FALSE, message=FALSE}
+
+# choice the columns i need & clean data 
+
+CoffeeAnalysisData <- coffee_ratings %>% 
+  select(Species,Aroma,Total.Cup.Points,Country.of.Origin)
+
+# These are the same:
+CoffeeAnalysisData <- drop_na(CoffeeAnalysisData)
+
+#CoffeeAnalysisData <- CoffeeAnalysisData[!is.na(CoffeeAnalysisData$country_of_origin),]
 
 ```
 
 After read and explore dataset I was wondering if there is relationship between the coffee bean origin country and coffee aroma.
 
-### Does Coffee Bean Origin Affect Coffee Aroma?
+## Report Question
 
-This report will show you if the country of origin affect the coffee aroma.
-
-The dataset used in this report coffee_ratings dataset.
-
-```{r, echo=FALSE , warning=FALSE, message=FALSE}
-
-# choce the colums i need & clean data 
-
-CoffeeAnalysisData <- coffee_ratings %>% 
-  select(species,aroma,total_cup_points,country_of_origin)
-
-# These are the same:
-CoffeeAnalysisData <- drop_na(CoffeeAnalysisData)
-
-CoffeeAnalysisData <- CoffeeAnalysisData[!is.na(CoffeeAnalysisData$country_of_origin),]
-
-```
+So in this report, I will try to answer this question;
+Does Coffee Bean Origin Affect Coffee Aroma?
 
 # Descriptive Statistics
 
-The mean and standard deviation of Aroma for each Country of origin.
+The table shows the means and standard deviation of Aroma for each Country of origin. so we can understand the relationship better. 
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 
 coffeeTable <- CoffeeAnalysisData %>% 
-  group_by(country_of_origin) %>% 
+  group_by(Country.of.Origin) %>% 
   summarise(n = n(),
-            Average = mean(aroma),
-            SD = sd(aroma)) %>% 
+            Average = mean(Aroma),
+            SD = sd(Aroma)) %>% 
   filter(n > 10)
 
 datatable(coffeeTable)
 ```
 
 # Data Visualization
-
-## Bar Plot
-
-```{r, echo=FALSE , warning=FALSE, message=FALSE}
-# Outside bars
-ggplot(CoffeeAnalysisData, aes(country_of_origin, aroma)) +
-  geom_jitter(width = 0.2)
-# geom_bar(stat="identity", fill="#a6611a")+
-```
-
+Here I visualize data to see a pattern and trends it is easier to understand these thing after visualize data set .
 
 ```{r, echo=FALSE , warning=FALSE, message=FALSE}
-ggplot(CoffeeAnalysisData, aes(aroma, country_of_origin)) +
+ggplot(CoffeeAnalysisData, aes(Aroma, Country.of.Origin)) +
   stat_sum(alpha = 0.2, shape = 16) +
   # geom_point(alpha = 0.2) +
   coord_cartesian(xlim = c(5,9)) +
@@ -81,83 +71,22 @@ ggplot(CoffeeAnalysisData, aes(aroma, country_of_origin)) +
 
 ```
 
-## Normal Distirbution
-
-```{r, echo=FALSE , warning=FALSE, message=FALSE}
-set.seed(136)
-popu_Aroma_Country <- rnorm(CoffeeAnalysisData$country_of_origin, 
-                              mean = mean(CoffeeAnalysisData$aroma),
-                              sd = sd(CoffeeAnalysisData$aroma))
-hist(popu_Aroma_Country, breaks = 100, main = "A normally-distributed population")
-```
-
-```{r, echo=FALSE , warning=FALSE, message=FALSE}
-# Simple Bar Plot
-counts <- table(CoffeeAnalysisData$aroma)
-barplot(counts, main="Aroma Distribution",
-   xlab="Grade of Aroma")
-
-```
-
-
 # The ANOVA summary
-I apply ANOVA to determine if there is really a relation between Country of origin and aroma.
+I apply ANOVA to determine if there is really a relation between Country of origin and aroma. this summary can help determine if Country of origin really affect coffee Aroma.
 
 ```{r, echo=FALSE , warning=FALSE, message=FALSE}
 library(pander)
 
-res.aov <- aov(aroma ~ country_of_origin, data = CoffeeAnalysisData)
+res.aov <- aov(Aroma ~ Country.of.Origin, data = CoffeeAnalysisData)
 ANOVATable <- summary(res.aov)
 
 pander(ANOVATable, style='rmarkdown')
 
 ```
 
-After applying the ANOVA model it became clear that is reasonable to say that country of origin affects the coffee aroma. And the aroma change depending on country of origin.
+After applying the ANOVA model it became clear that is reasonable to say that country of origin affects the coffee aroma. And the aroma change depending on the country of origin.
 
+## Answer for Report Question? 
 
-
-### Try CI
-```{r, echo=FALSE , warning=FALSE, message=FALSE}
-# Data
-coffee_from_Colombia2 <- CoffeeAnalysisData$aroma[CoffeeAnalysisData$country_of_origin == "Colombia"]
-
-# n
-n <- length(coffee_from_Colombia2)
-
-# Mean
-aromaCol_mean <- sum(coffee_from_Colombia2)/n
-
-# Variance
-aromaCol_var <- sum((coffee_from_Colombia2 - aromaCol_mean)^2)/(length(coffee_from_Colombia2) - 1)
-
-# Standard deviation
-aromaCol_sd <- sqrt(aromaCol_var)
-
-aromaCol_mean
-aromaCol_var
-aromaCol_sd
-```
-
-
-
-### Try 95% CI
-
-```{r, echo=FALSE , warning=FALSE, message=FALSE}
-n
-aromaCol_sd
-aromaCol_mean
-
-SEM <- aromaCol_sd/sqrt(n)
-
-CI_lower <- aromaCol_mean - (1.96 * SEM)
-CI_upper <- aromaCol_mean + (1.96 * SEM)
-
-```
-
-95% of the Aroma if Country of origin is Columbia are expected to have a height between [0.2684212- 7.65306]
-
-
-
-
+Yes, the country of origin let the coffee have a different Aroma.
 
