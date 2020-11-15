@@ -192,19 +192,6 @@ gBar +
 # f) Violin plot
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 #theme(legend.position = left)
 #scale_x_continuous( limits = c(4,8)) +
 #scale_y_continuous(limits = c(2,5))
